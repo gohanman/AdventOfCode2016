@@ -60,6 +60,32 @@ let valid (r:Room) =
     | 0 -> true
     | _ -> false
 
+let rotateLetter (c:char) =
+    match c with
+    | '-' -> ' '
+    | ' ' -> '-'
+    | _ -> (
+            let ascii = (int c)
+            if (ascii = 122) then
+                'a'
+            else
+                let next = ascii + 1
+                (char next)
+    )
+
+let rotateString (s:string) =
+    let rotated =
+        [for c in s -> c]
+        |> List.map rotateLetter
+        |> List.fold (fun carry i -> carry + (i.ToString())) ""
+    rotated
+
+let rotateTimes (s:string) (t:int) =
+    let mutable ret = s
+    for i in 0..(t-1) do
+        ret <- rotateString ret
+    ret
+
 [<EntryPoint>]
 let main argv = 
     let file = System.IO.File.ReadAllLines("Input.txt") |> Array.toList
@@ -67,4 +93,8 @@ let main argv =
     let goodRooms = List.filter valid rooms
     let sum = List.fold (fun c i -> c+i.sector) 0 goodRooms
     printfn "Room count: %d, Sector sum: %d" (goodRooms.Length) sum
+    goodRooms
+    |> List.iter (fun i ->
+        printfn "Decoded: %s, Sector: %d" (rotateTimes i.name i.sector) i.sector
+    )
     0 // return an integer exit code
