@@ -1,6 +1,4 @@
-﻿// Learn more about F# at http://fsharp.org
-// See the 'F# Tutorial' project for more help.
-
+﻿
 type Heading =
     | North
     | East
@@ -55,6 +53,33 @@ let walk (loc:Location) (m:Move) =
         | West -> (loc.x - m.step, loc.y)
     { x=newX; y=newY; facing=newHeading }
 
+let pointsBetween (a:Location) (b:Location) =
+    if (a.x = b.x && a.y < b.y) then
+        [for i in (a.y+1)..(b.y) -> (a.x, a.y+i)]
+    elif (a.x = b.x && a.y > b.y) then
+        [for i in (b.y+1)..(a.y) -> (b.x, b.y+i)]
+    elif (a.y = b.y && a.x < b.x) then
+        [for i in (a.x+1)..(b.x) -> (a.x+i, a.y)]
+    elif (a.y = b.y && a.x > b.x) then
+        [for i in (b.x+1)..(a.x) -> (b.x+i, b.y)]
+    else
+        []
+
+let findDupe (loc:Location) (m:Move list) =
+    let mutable points = Map.empty.Add((loc.x,loc.y), 1)
+    let mutable current = loc
+    seq {
+        for i in m do
+            let newLoc = walk current i
+            for j in (pointsBetween current newLoc) do
+                let x,y = j
+                if (points.ContainsKey((x, y))) then 
+                    yield (x, y)
+                let newPoints = points.Add((x,y), 1)
+                points <- newPoints
+            current <- newLoc
+    }
+
 [<EntryPoint>]
 let main argv = 
     let moves = moveList PATH
@@ -62,5 +87,10 @@ let main argv =
     let finish = List.fold walk start moves
     printfn "End at: %d,%d" finish.x finish.y
     printfn "Blocks away: %d" (finish.x + finish.y)
+    let dupes = findDupe start moves
+    let first = Seq.take 1 dupes |> Seq.toList
+    let x,y = first.Head
+    printfn "End at: %d,%d" x y
+    printfn "Blocks away: %d" (x + y)
     System.Console.ReadKey() |> ignore
     0 // return an integer exit code
