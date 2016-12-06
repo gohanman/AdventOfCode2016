@@ -16,29 +16,17 @@ let rec frequency (data:char list) (map:Map<char,int>) =
         let map' = newMap x map
         frequency xs map'
 
-let rec mapMax (map:Map<char,int>) (curMax:int) (curVal:char) =
+let rec mapMax (map:Map<char,int>) comparer curMax curVal =
     match (map.Count) with
     | 0 -> curMax, curVal
     | _ ->
         let newKey = map |> Map.toSeq |> Seq.map fst |> Seq.head
         let newMax = map.Item(newKey)
         let trimMap = map.Remove(newKey)
-        if (curMax < newMax) then
-            mapMax trimMap newMax newKey
+        if (comparer curMax newMax) then
+            mapMax trimMap comparer newMax newKey
         else
-            mapMax trimMap curMax curVal
-
-let rec mapMin (map:Map<char,int>) (curMin:int) (curVal:char) =
-    match (map.Count) with
-    | 0 -> curMin, curVal
-    | _ ->
-        let newKey = map |> Map.toSeq |> Seq.map fst |> Seq.head
-        let newMin = map.Item(newKey)
-        let trimMap = map.Remove(newKey)
-        if (curMin > newMin) then
-            mapMin trimMap newMin newKey
-        else
-            mapMin trimMap curMin curVal
+            mapMax trimMap comparer curMax curVal
 
 [<EntryPoint>]
 let main argv = 
@@ -48,8 +36,8 @@ let main argv =
     for i in 0..(headlist.Length-1) do
         let curSet = nthSet i charlists
         let freq = frequency curSet Map.empty
-        let _,letter = mapMax freq 0 '.'
-        let _,minLetter = mapMin freq 999 '.'
+        let _,letter = mapMax freq (fun a b -> a < b) 0 '.'
+        let _,minLetter = mapMax freq (fun a b -> a > b) 999 '.'
         printfn "%d: %s" i (letter.ToString())
         printfn "\t%d: %s" i (minLetter.ToString())
     0 // return an integer exit code
