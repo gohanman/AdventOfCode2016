@@ -39,10 +39,16 @@ let countSuperEncrypted (s:string) =
     seq {
         let mutable cur = s
         while (cur.Contains(")")) do
-            let pass = processString cur ""
-            let firstMarker = pass.IndexOf('(')
+            let left, right = parts cur
+            let prefix,repeat = getPreAndRepeat left
+            let newRemain = right.Substring(repeat.length)
+            let repeated = repeatText right prefix repeat
+            cur <- repeated + newRemain
+            let firstMarker = cur.IndexOf('(')
             cur <- cur.Substring(firstMarker)
             yield firstMarker
+
+        yield cur.Length
     }
 
 [<EntryPoint>]
