@@ -7,7 +7,7 @@ type Command =
     | GiveOO of (int * int * int)
     | GiveBO of (int * int * int)
     | GiveOB of (int * int * int)
-type Chip = Chip of int
+type Chip = { value:int }
 type Bot = { id:int; instructions:Command list; chips:Chip list }
 type Output = { id:int; chips:Chip list }
 type Factory = { bots:Bot list; outputs:Output list }
@@ -100,19 +100,24 @@ let strToCmd (s:string) =
         None
 
 let worldWithBot (f:Factory) (b:int) =
-    if (hasBot f b) then 
-        f 
-    else 
-        addBot f ({ id=b; chips=[]; instructions=[] })
+    if (hasBot f b) then  f 
+    else addBot f ({ id=b; chips=[]; instructions=[] })
+
+let worldWithOutput (f:Factory) (o:int) =
+    if (hasOutput f o) then f
+    else addOutput f ({ id=o; chips=[] })
 
 let runCommand (f:Factory) (c:Command) =
     match c with
     | Ingest (b,v) ->
         let newWorld = worldWithBot f b
-        giveToBot f b (Chip v) 
+        giveToBot newWorld b ({ value=v }) 
     | GiveBB (b,_,_) | GiveBO (b,_,_)| GiveOB (b,_,_)| GiveOO (b,_,_) ->
         let newWorld = worldWithBot f b
         queueCmd newWorld b c
+
+let magicPoint (id:int) (high:int) (low:int) =
+    if (high=61 && low=17) then printfn "Bot %d" id
 
 let botCommand (f:Factory) (c:Command) =
     match c with
@@ -120,23 +125,35 @@ let botCommand (f:Factory) (c:Command) =
     | GiveBB (b,l,h) ->
         let lowChip, f1 = takeLow f b 
         let highChip, f2 = takeHigh f1 b
-        let f3 = giveToBot f2 l lowChip
-        giveToBot f3 h highChip
+        magicPoint b highChip.value lowChip.value
+        let f3 = worldWithBot f2 l
+        let f4 = giveToBot f3 l lowChip
+        let f5 = worldWithBot f4 h
+        giveToBot f5 h highChip
     | GiveBO (b,l,h) ->
         let lowChip, f1 = takeLow f b 
         let highChip, f2 = takeHigh f1 b
-        let f3 = giveToBot f2 l lowChip
-        giveToOutput f3 h highChip
+        magicPoint b highChip.value lowChip.value
+        let f3 = worldWithBot f2 l
+        let f4 = giveToBot f3 l lowChip
+        let f5 = worldWithOutput f4 h
+        giveToOutput f5 h highChip
     | GiveOO (b,l,h) ->
         let lowChip, f1 = takeLow f b 
         let highChip, f2 = takeHigh f1 b
-        let f3 = giveToOutput f2 l lowChip
-        giveToOutput f3 h highChip
+        magicPoint b highChip.value lowChip.value
+        let f3 = worldWithOutput f2 l
+        let f4 = giveToOutput f3 l lowChip
+        let f5 = worldWithOutput f4 h
+        giveToOutput f5 h highChip
     | GiveOB (b,l,h) ->
         let lowChip, f1 = takeLow f b 
         let highChip, f2 = takeHigh f1 b
-        let f3 = giveToOutput f2 l lowChip
-        giveToBot f3 h highChip
+        magicPoint b highChip.value lowChip.value
+        let f3 = worldWithOutput f2 l
+        let f4 = giveToOutput f3 l lowChip
+        let f5 = worldWithOutput f4 h
+        giveToBot f5 h highChip
 
 let runWorld (cmds:Command list) =
     let mutable world = { bots=[]; outputs=[] }
@@ -151,5 +168,12 @@ let runWorld (cmds:Command list) =
 
 [<EntryPoint>]
 let main argv = 
-    printfn "%A" argv
+    let file = System.IO.File.ReadAllLines("Input.txt") |> Array.toList
+    let cmds = file |> List.map strToCmd |> List.choose id
+    let world = runWorld cmds
+    world.outputs 
+    |> List.filter (fun i -> i.id <= 2)
+    |> List.map (fun i -> List.head i.chips)
+    |> List.fold (fun c i -> c*i.value) 1
+    |> printfn "Pt 2: %d"
     0 // return an integer exit code
