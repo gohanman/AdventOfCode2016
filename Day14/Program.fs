@@ -21,9 +21,18 @@ let md5 (s:string) =
 
 let stretchedMD5 (s:string) =
     let mutable result = s
-    for i in [0..2015] do
-        result <- md5 s
+    for i in [0..2016] do
+        result <- md5 result
     result
+
+let mutable CACHE:Map<string,string> = Map.empty
+let cachedHash (f:string->string) (s:string) =
+    if (CACHE.ContainsKey(s)) then
+        CACHE.Item(s)
+    else
+        let hash = f s
+        CACHE <- CACHE.Add(s, hash)
+        hash
 
 let rec hasSubKey (hasher:string->string) (index:int) (seq:string) (iter:int) =
     match iter with
@@ -49,11 +58,15 @@ let rec findKeys hasher (index:int) (keys:string list) (num:int) =
     if (num=keys.Length) then List.rev keys
     else
         match (isKey (hasher) index) with
-        | Some k -> findKeys hasher (index+1) ((index.ToString()+":"+k) :: keys) num
+        | Some k -> 
+            findKeys hasher (index+1) ((index.ToString()+":"+k) :: keys) num
         | None -> findKeys hasher (index+1) keys num
 
 [<EntryPoint>]
 let main argv = 
-    let keys = findKeys (stretchedMD5) 0 [] 64
-    keys |> List.iteri (fun i x -> printfn "%d %s" i x)
+    //let keys = findKeys (cachedHash md5) 0 [] 64
+    //keys |> List.iteri (fun i x -> printfn "%d %s" i x)
+    CACHE <- Map.empty
+    let keys2 = findKeys (cachedHash stretchedMD5) 0 [] 64
+    keys2 |> List.iteri (fun i x -> printfn "%d %s" i x)
     0 // return an integer exit code
