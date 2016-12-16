@@ -193,7 +193,7 @@ let main argv =
         { parts=Set.empty};
     |]
     let world = { World.floors=floors; elevator=0 }
-    //solve world
+    solve world
     let f0 = world.floors.[0].parts
     let additions = 
         f0.Add(Generator Element.Elerium).Add(Microchip Element.Elerium).Add(Generator Element.Dilithium).Add(Microchip Element.Dilithium)
