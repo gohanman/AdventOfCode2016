@@ -38,15 +38,22 @@ let rec processString (remaining:string) (complete:string) =
 let countSuperEncrypted (s:string) =
     seq {
         let mutable cur = s
+        let sb = new System.Text.StringBuilder()
         while (cur.Contains(")")) do
-            let left, right = parts cur
-            let prefix,repeat = getPreAndRepeat left
-            let newRemain = right.Substring(repeat.length)
-            let repeated = repeatText right prefix repeat
-            cur <- repeated + newRemain
+            printfn "%d" cur.Length
             let firstMarker = cur.IndexOf('(')
-            cur <- cur.Substring(firstMarker)
-            yield firstMarker
+            if (firstMarker > 0) then yield firstMarker
+            cur <- cur.Substring(firstMarker+1)
+            let endMarker = cur.IndexOf(')')
+            let pair = cur.Substring(0, endMarker)
+            cur <- cur.Substring(endMarker+1)
+            let pts = pair.Split([|'x'|], 2)
+            let rp = {
+                length=(System.Int32.Parse(pts.[0]));
+                count=(System.Int32.Parse(pts.[1]));
+            }
+            let repeated = repeatText (cur.Substring(0, rp.length)) "" rp
+            cur <- sb.Clear().Append(repeated).Append(cur.Substring(rp.length)).ToString()
 
         yield cur.Length
     }
