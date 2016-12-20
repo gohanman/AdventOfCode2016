@@ -18,30 +18,25 @@ let unsteal (elf:int) (r:Round) =
     | Round.Odd -> (2 * elf) + 1
     | _ -> elf
 
-let findAcross (cur:int) (num:int) =
-    printfn "%d %d" cur num
-    let half = num / 2
-    let even = (num % 2) = 0
-    match even with
-    | true ->
-        if (cur < half) then cur + half else cur - half
-    | false ->
-        if (cur < half) then cur + half
-        elif (cur = half) then 0
-        else cur - (half + 1)
+let nextNonEmpty (elves:Elf array) (pos:int) =
+    let mutable i = (pos + 1) % elves.Length
+    while (elves.[i].presents = 0) do
+        i <- (i + 1) % elves.Length
+    i
 
-let stealAcross (elves:Elf array) (cur:int) =
-    let opp = findAcross cur elves.Length
-    if (opp = 0) then elves.[1..]
-    else
-        Array.append elves.[..(opp-1)] elves.[(opp+1)..]
-
-let rec allAcross (elves:Elf array) (cur:int) =
-    if (elves.Length = 1) then elves.[0]
-    else
-        let lessOne = stealAcross elves cur
-        let cur' = if (cur + 1 >= lessOne.Length) then 0 else cur + 1
-        allAcross lessOne cur'
+let circleSteal (size:int) =
+    let mutable elves = Array.init size (fun i -> { number=(i+1); presents=1 })
+    let mutable count = size
+    let mutable cur = 0
+    let mutable midpoint = count / 2
+    while (count > 1) do
+        elves.[midpoint] <- { elves.[midpoint] with presents=0 }
+        cur <- nextNonEmpty elves cur
+        midpoint <- nextNonEmpty elves midpoint
+        if (count % 2 = 1) then
+            midpoint <- nextNonEmpty elves midpoint
+        count <- count - 1
+    elves.[midpoint]
 
 [<EntryPoint>]
 let main argv = 
@@ -50,6 +45,6 @@ let main argv =
         rounds
         |> List.fold unsteal 1
     printfn "%d" elf
-    let across = Array.init 3018458 (fun i -> { number=(i+1); presents=1 })
-    printfn "%A" (allAcross across 0)
+    //let mutable across = Array.init 3018458 (fun i -> { number=(i+1); presents=1 })
+    printfn "%A" (circleSteal 3018458)
     0 // return an integer exit code
