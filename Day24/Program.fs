@@ -39,21 +39,6 @@
                 yield { w.position with y=(w.position.y + 1) }
         }
 
-    let move (w:World) (c:Coord) =
-        let newpos = w.tiles.[c.x,c.y]
-        match newpos with
-        | Value i ->
-            if (i > 0) then 
-                { w with position=c; collected=(w.collected.Add(i)) }
-            else
-                { w with position=c }
-        | Open i ->
-            { w with position=c }
-        | Wall i -> w
-
-    let init (x:int) (y:int) =
-        Tile.Wall true
-
     let fileToTiles (filename:string) =
         let lines = System.IO.File.ReadAllLines(filename)
         let width = lines.[0].Length - 1
@@ -104,33 +89,6 @@
                 children
                 |> Seq.fold (addChild goal cur) state'
             shortest state'' goal
-
-    let solved (w:World list) (target:int) =
-        w
-        |> List.filter (fun i -> i.collected.Contains(target))
-        |> List.isEmpty |> not
-
-    let rec walk (w:World list) (target:int) (visited:Set<Coord>) (steps:int) =
-        printfn "%d" steps
-        if (solved w target) then
-            steps
-        else
-            let mutable v' = visited
-            let mutable w' = []
-            for world in w do
-                v' <- v'.Add(world.position)
-                let opts = moves world
-                let newWorlds =
-                    opts
-                    |> Seq.map (fun i -> move world i)
-                    |> Seq.filter (fun i -> not (visited.Contains(i.position)))
-                    |> Seq.toList
-                w' <- w' @ newWorlds
-            if (w'.Length = 0) then
-                printfn "Stuck at %d" steps
-                0
-            else
-                walk w' target v' (steps + 1)
 
     let distrib e L =
         let rec aux pre post = 
