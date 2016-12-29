@@ -1,6 +1,7 @@
 ﻿module Main 
 
     open PriorityQueue
+    open AStar
 
     type Tile =
         | Value of int
@@ -9,14 +10,6 @@
     type Coord = { x:int; y:int }
     type World = { tiles:Tile[,]; position:Coord; collected:Set<int> }
     type Path = { src:int; dest:int }
-    type AStar = { 
-        f:Map<Coord,int>; 
-        g:Map<Coord,int>; 
-        visited:Set<Coord>;
-        available:PriorityQueue.Queue<Coord>;
-        world:World;
-        hueristic:Coord -> Coord -> int;
-    }
 
     let canMove (w:World) (c:Coord) =
         if (c.x < 0 || c.y < 0) then false
@@ -27,16 +20,16 @@
             | Open i -> true
             | Wall i -> false
 
-    let moves (w:World) =
+    let moves (w:World) (position:Coord) =
         seq {
-            if (canMove w { w.position with x=(w.position.x - 1) }) then
-                yield { w.position with x=(w.position.x - 1) }
-            if (canMove w { w.position with x=(w.position.x + 1) }) then
-                yield { w.position with x=(w.position.x + 1) }
-            if (canMove w { w.position with y=(w.position.y - 1) }) then
-                yield { w.position with y=(w.position.y - 1) }
-            if (canMove w { w.position with y=(w.position.y + 1) }) then
-                yield { w.position with y=(w.position.y + 1) }
+            if (canMove w { position with x=(position.x - 1) }) then
+                yield { position with x=(position.x - 1) }
+            if (canMove w { position with x=(position.x + 1) }) then
+                yield { position with x=(position.x + 1) }
+            if (canMove w { position with y=(position.y - 1) }) then
+                yield { position with y=(position.y - 1) }
+            if (canMove w { position with y=(position.y + 1) }) then
+                yield { position with y=(position.y + 1) }
         }
 
     let fileToTiles (filename:string) =
@@ -67,28 +60,6 @@
 
     let distance (d1:Coord) (d2:Coord) =
         (abs (d1.x - d2.x)) + (abs (d1.y - d2.y))
-
-    let addChild (goal:Coord) (parent:Coord) (state:AStar) (child:Coord) =
-        let gval = state.g.Item(parent) + 1
-        let g' = state.g.Add(child, gval)
-        let fval = gval + (state.hueristic child goal)
-        let f' = state.f.Add(child, fval)
-        let a' = PriorityQueue.push state.available child fval
-        { state with g=g'; f=f'; available=a' }
-
-    let rec shortest (state:AStar) (goal:Coord) =
-        let cur,avail' = PriorityQueue.pop state.available
-        if (cur = goal) then state.g.Item(cur)
-        else
-            let v' = state.visited.Add(cur)
-            let state' = { state with visited=v'; available=avail' }
-            let children = 
-                moves { state.world with position=cur }
-                |> Seq.filter (fun i -> not (v'.Contains(i)))
-            let state'' =
-                children
-                |> Seq.fold (addChild goal cur) state'
-            shortest state'' goal
 
     let distrib e L =
         let rec aux pre post = 
@@ -127,14 +98,14 @@
                 else 
                     let pq = PriorityQueue.init (distance d)
                     let astar = {
-                        g=Map.empty.Add(s, 0);
+                        State.g=Map.empty.Add(s, 0);
                         f=Map.empty.Add(s, distance s d);
                         available=(PriorityQueue.push pq s (distance s d));
-                        hueristic=distance;
-                        world={world with position=s };
+                        hueristic=(distance d);
                         visited=Set.empty;
+                        expand=(moves world);
                     }
-                    let steps = shortest astar d
+                    let steps = AStar.shortest astar d
                     cache <- cache.Add((s,d), steps)
                     total <- total + steps
             explored <- (path', total) :: explored

@@ -53,6 +53,10 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Day24", "Day24\Day24.fsproj
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Day25", "Day25\Day25.fsproj", "{FC8A1BFD-BA19-4E34-86CF-9EA93207A8C3}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "PriorityQueue", "PriorityQueue\PriorityQueue.fsproj", "{A73B76E7-E96F-4386-8BFF-75A0E221B1DB}"
+EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "AStar", "AStar\AStar.fsproj", "{1CA0CE62-98CC-4126-AC2C-3F1053B8C952}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -159,6 +163,14 @@ Global
 		{FC8A1BFD-BA19-4E34-86CF-9EA93207A8C3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC8A1BFD-BA19-4E34-86CF-9EA93207A8C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC8A1BFD-BA19-4E34-86CF-9EA93207A8C3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A73B76E7-E96F-4386-8BFF-75A0E221B1DB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A73B76E7-E96F-4386-8BFF-75A0E221B1DB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A73B76E7-E96F-4386-8BFF-75A0E221B1DB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A73B76E7-E96F-4386-8BFF-75A0E221B1DB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1CA0CE62-98CC-4126-AC2C-3F1053B8C952}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1CA0CE62-98CC-4126-AC2C-3F1053B8C952}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1CA0CE62-98CC-4126-AC2C-3F1053B8C952}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1CA0CE62-98CC-4126-AC2C-3F1053B8C952}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
