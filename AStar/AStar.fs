@@ -15,6 +15,8 @@ open PriorityQueue
         hueristic:'a -> int;
         // get new states reachable from a given state
         expand:'a -> 'a seq;
+        // state is the solution
+        solved:'a -> bool
     }
 
     module AStar =
@@ -26,9 +28,9 @@ open PriorityQueue
             let a' = PriorityQueue.push state.available child fval
             { state with g=g'; f=f'; available=a' }
 
-        let rec shortest (state:State<'a>) (goal:'a) =
+        let rec shortest (state:State<'a>) =
             let cur,avail' = PriorityQueue.pop state.available
-            if (cur = goal) then state.g.Item(cur)
+            if (state.solved cur) then state.g.Item(cur)
             else
                 let v' = state.visited.Add(cur)
                 let state' = { state with visited=v'; available=avail' }
@@ -38,4 +40,4 @@ open PriorityQueue
                 let state'' =
                     children
                     |> Seq.fold (addChild cur) state'
-                shortest state'' goal
+                shortest state''
